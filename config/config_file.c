@@ -33,8 +33,18 @@ int afc_read_req_configs(struct afc_config *config)
 	memset(config, 0, sizeof(struct afc_config));
 
 	while (fgets(line, sizeof(line), fp)) {
+		if (line[0] == '\n' || line[0] == '#')
+			continue;
+
 		token = strtok(line, "=");
+		if (!token)
+			continue;
+
 		value = strtok(NULL, "\n");
+		if (!value) {
+			afc_printf(MSG_ERROR, "missing value for key '%s', skipping", token);
+			continue;
+		}
 
 		if (strcmp(token, "version") == 0) {
 			/* TODO: validation of version param - TBD */
@@ -110,7 +120,7 @@ int afc_read_req_configs(struct afc_config *config)
 
 			freq_range_token = strtok(value, " '");
 			while (freq_range_token != NULL) {
-				sscanf(freq_range_token, "%d-%d", &config->req_params.list_freq_range.range[freq_range_idx].lower_freq,
+				sscanf(freq_range_token, "%hu-%hu", &config->req_params.list_freq_range.range[freq_range_idx].lower_freq,
 					&config->req_params.list_freq_range.range[freq_range_idx].higher_freq);
 				freq_range_idx++;
 				freq_range_token = strtok(NULL, " ");
